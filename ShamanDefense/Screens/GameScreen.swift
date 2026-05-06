@@ -31,7 +31,7 @@ struct GameScreen: View {
                     .onChange(of: geo.size) { _, newSize in scene.size = newSize }
 
                 if let drag = dragging, drag.location.y < fieldMaxY {
-                    PlaceholderPreview(character: drag.character)
+                    DragPreview(character: drag.character)
                         .position(drag.location)
                         .opacity(0.7)
                         .allowsHitTesting(false)
@@ -58,21 +58,6 @@ struct GameScreen: View {
                 }
             }
             .coordinateSpace(name: gameCoordSpace)
-        }
-    }
-}
-
-private struct PlaceholderPreview: View {
-    let character: CharacterData
-    var body: some View {
-        ZStack {
-            Circle()
-                .fill(character.tint)
-                .overlay(Circle().stroke(Color.black, lineWidth: 2))
-                .frame(width: 56, height: 56)
-            Text(character.name)
-                .font(.system(size: 12, weight: .bold))
-                .foregroundStyle(.white)
         }
     }
 }
