@@ -8,15 +8,9 @@
 import SpriteKit
 import SwiftUI
 
-final class PociNode: SKNode {
-    override init() {
-        super.init()
-
-        let body = SKShapeNode(circleOfRadius: 28)
-        body.fillColor = UIColor.cyan
-        body.strokeColor = .black
-        body.lineWidth = 2
-        addChild(body)
+final class PociNode: SKSpriteNode {
+    init() {
+        super.init(texture: nil, color: .cyan, size: CGSize(width: 56, height: 56))
 
         let label = SKLabelNode(text: "Poci")
         label.fontName = "AvenirNext-Bold"

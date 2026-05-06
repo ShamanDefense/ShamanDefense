@@ -8,15 +8,9 @@
 import SpriteKit
 import SwiftUI
 
-final class YuyulNode: SKNode {
-    override init() {
-        super.init()
-
-        let body = SKShapeNode(circleOfRadius: 28)
-        body.fillColor = UIColor.purple
-        body.strokeColor = .black
-        body.lineWidth = 2
-        addChild(body)
+final class YuyulNode: SKSpriteNode {
+    init() {
+        super.init(texture: nil, color: .purple, size: CGSize(width: 56, height: 56))
 
         let label = SKLabelNode(text: "Yuyul")
         label.fontName = "AvenirNext-Bold"

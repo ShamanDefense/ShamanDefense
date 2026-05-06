@@ -8,15 +8,9 @@
 import SpriteKit
 import SwiftUI
 
-final class KetiNode: SKNode {
-    override init() {
-        super.init()
-
-        let body = SKShapeNode(circleOfRadius: 28)
-        body.fillColor = UIColor.orange
-        body.strokeColor = .black
-        body.lineWidth = 2
-        addChild(body)
+final class KetiNode: SKSpriteNode {
+    init() {
+        super.init(texture: nil, color: .orange, size: CGSize(width: 56, height: 56))
 
         let label = SKLabelNode(text: "Keti")
         label.fontName = "AvenirNext-Bold"
