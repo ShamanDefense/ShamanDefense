@@ -10,6 +10,7 @@ import SwiftUI
 
 private let gameCoordSpace = "game"
 private let trayHeight: CGFloat = 120
+private let dragLift: CGFloat = 40
 
 struct GameScreen: View {
     @State private var scene: GameScene = {
@@ -22,17 +23,19 @@ struct GameScreen: View {
 
     var body: some View {
         GeometryReader { geo in
+            let topInset = geo.safeAreaInsets.top
+            let bottomInset = geo.safeAreaInsets.bottom
+            let fullHeight = geo.size.height + topInset + bottomInset
             let fieldMaxY = geo.size.height - trayHeight
 
             ZStack {
                 SpriteView(scene: scene)
                     .ignoresSafeArea()
-                    .onAppear { scene.size = geo.size }
-                    .onChange(of: geo.size) { _, newSize in scene.size = newSize }
 
                 if let drag = dragging, drag.location.y < fieldMaxY {
+                    let liftedY = drag.location.y - dragLift
                     DragPreview(character: drag.character)
-                        .position(drag.location)
+                        .position(x: drag.location.x, y: liftedY)
                         .opacity(0.7)
                         .allowsHitTesting(false)
                 }
@@ -48,9 +51,10 @@ struct GameScreen: View {
                         onDragEnded: { character, location in
                             dragging = nil
                             guard location.y < fieldMaxY else { return }
+                            let liftedY = location.y - dragLift
                             let scenePoint = CGPoint(
                                 x: location.x,
-                                y: geo.size.height - location.y
+                                y: fullHeight - (topInset + liftedY)
                             )
                             scene.place(character, at: scenePoint)
                         }
