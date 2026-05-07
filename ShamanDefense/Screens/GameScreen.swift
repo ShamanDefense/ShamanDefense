@@ -1,0 +1,71 @@
+//
+//  GameScreen.swift
+//  ShamanDefense
+//
+//  Created by Mohammad Rizaldy Ramadhan on 06/05/26.
+//
+
+import SpriteKit
+import SwiftUI
+
+private let gameCoordSpace = "game"
+private let trayHeight: CGFloat = 120
+private let dragLift: CGFloat = 40
+
+struct GameScreen: View {
+    @State private var scene: GameScene = {
+        let s = GameScene()
+        s.scaleMode = .resizeFill
+        return s
+    }()
+    @State private var selected: CharacterData? = nil
+    @State private var dragging: (character: CharacterData, location: CGPoint)? = nil
+
+    var body: some View {
+        GeometryReader { geo in
+            let topInset = geo.safeAreaInsets.top
+            let bottomInset = geo.safeAreaInsets.bottom
+            let fullHeight = geo.size.height + topInset + bottomInset
+            let fieldMaxY = geo.size.height - trayHeight
+
+            ZStack {
+                SpriteView(scene: scene)
+                    .ignoresSafeArea()
+
+                if let drag = dragging, drag.location.y < fieldMaxY {
+                    let liftedY = drag.location.y - dragLift
+                    DragPreview(character: drag.character)
+                        .position(x: drag.location.x, y: liftedY)
+                        .opacity(0.7)
+                        .allowsHitTesting(false)
+                }
+
+                VStack(spacing: 0) {
+                    Spacer()
+                    DeploymentTrayHUD(
+                        selected: $selected,
+                        coordSpace: gameCoordSpace,
+                        onDragChanged: { character, location in
+                            dragging = (character, location)
+                        },
+                        onDragEnded: { character, location in
+                            dragging = nil
+                            guard location.y < fieldMaxY else { return }
+                            let liftedY = location.y - dragLift
+                            let scenePoint = CGPoint(
+                                x: location.x,
+                                y: fullHeight - (topInset + liftedY)
+                            )
+                            scene.place(character, at: scenePoint)
+                        }
+                    )
+                }
+            }
+            .coordinateSpace(name: gameCoordSpace)
+        }
+    }
+}
+
+#Preview {
+    GameScreen()
+}

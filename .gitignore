@@ -1,0 +1,9 @@
+# Xcode personal settings
+xcuserdata/
+
+# Derived Data and build artifacts
+build/
+DerivedData/
+
+# Swift Package Manager
+.swiftpm/xcode/package.xcworkspace/xcuserdata/
