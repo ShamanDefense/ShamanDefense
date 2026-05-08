@@ -11,7 +11,7 @@ struct DragPreview: View {
     let character: CharacterData
     var isPlaceable: Bool? = nil
 
-    private static let diameter: CGFloat = 36
+    private static let diameter: CGFloat = GhostMetrics.diameter
 
     private var validityColor: Color? {
         switch isPlaceable {

@@ -6,7 +6,7 @@
 import SpriteKit
 
 class GhostNode: SKShapeNode {
-    static let diameter: CGFloat = 36
+    static let diameter: CGFloat = GhostMetrics.diameter
 
     init(displayName: String, fillColor: SKColor) {
         super.init()

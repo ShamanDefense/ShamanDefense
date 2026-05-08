@@ -16,7 +16,7 @@ enum TileVariant {
 final class GameScene: SKScene {
 
     private let tileSize: CGFloat = 36
-    private let minPlacementSpacing: CGFloat = 36
+    private let minPlacementSpacing: CGFloat = GhostMetrics.diameter
     private var pathManager: PathManager!
     private var waveManager: WaveManager!
     private var placedPositions: [CGPoint] = []
@@ -42,10 +42,13 @@ final class GameScene: SKScene {
 
     func canPlace(_ character: CharacterData, at scenePoint: CGPoint) -> Bool {
         if tooCloseToExisting(scenePoint) { return false }
-        let onPath = pathManager?.isOnPath(scenePoint) ?? false
+        guard let pathManager else { return false }
+        let dist = pathManager.distanceToPath(scenePoint)
+        let ghostRadius = GhostNode.diameter / 2
+        let pathHalf = pathManager.pathHalfWidth
         switch character.kind {
-        case .tower: return !onPath
-        case .trap:  return onPath
+        case .tower: return dist > ghostRadius + pathHalf
+        case .trap:  return dist + ghostRadius <= pathHalf
         }
     }
 
