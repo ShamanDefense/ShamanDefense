@@ -9,13 +9,12 @@ import SpriteKit
 
 class HumanNode: SKNode {
     private let moveSpeed: CGFloat = 100
-    private var iconLabel: SKLabelNode!
 
     private(set) var hp: CGFloat = 1
 
     override init () {
         super.init()
-        iconLabel = SKLabelNode(text: "🏃🏻‍➡️")
+        let iconLabel = SKLabelNode(text: "🏃🏻‍➡️")
         iconLabel.fontSize = 40
         iconLabel.verticalAlignmentMode = .center
         addChild(iconLabel)

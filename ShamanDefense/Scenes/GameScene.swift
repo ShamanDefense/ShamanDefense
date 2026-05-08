@@ -6,12 +6,6 @@
 //
 
 import SpriteKit
-import SwiftUI
-
-enum TileVariant {
-    case straightH, straightV
-    case cornerTR, cornerTL, cornerBR, cornerBL
-}
 
 final class GameScene: SKScene {
 
@@ -44,7 +38,7 @@ final class GameScene: SKScene {
         if tooCloseToExisting(scenePoint) { return false }
         guard let pathManager else { return false }
         let dist = pathManager.distanceToPath(scenePoint)
-        let ghostRadius = GhostNode.diameter / 2
+        let ghostRadius = GhostMetrics.diameter / 2
         let pathHalf = pathManager.pathHalfWidth
         switch character.kind {
         case .tower: return dist > ghostRadius + pathHalf

@@ -6,12 +6,11 @@
 import SpriteKit
 
 class GhostNode: SKShapeNode {
-    static let diameter: CGFloat = GhostMetrics.diameter
-
     init(displayName: String, fillColor: SKColor) {
         super.init()
-        let r = Self.diameter / 2
-        path = CGPath(ellipseIn: CGRect(x: -r, y: -r, width: Self.diameter, height: Self.diameter), transform: nil)
+        let d = GhostMetrics.diameter
+        let r = d / 2
+        path = CGPath(ellipseIn: CGRect(x: -r, y: -r, width: d, height: d), transform: nil)
         self.fillColor = fillColor
         strokeColor = SKColor.black.withAlphaComponent(0.4)
         lineWidth = 1

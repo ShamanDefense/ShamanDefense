@@ -11,8 +11,6 @@ struct DragPreview: View {
     let character: CharacterData
     var isPlaceable: Bool? = nil
 
-    private static let diameter: CGFloat = GhostMetrics.diameter
-
     private var validityColor: Color? {
         switch isPlaceable {
         case .some(true):  return .green
@@ -26,7 +24,7 @@ struct DragPreview: View {
             Circle()
                 .fill(character.tint)
                 .overlay(Circle().stroke(Color.black, lineWidth: 1))
-                .frame(width: Self.diameter, height: Self.diameter)
+                .frame(width: GhostMetrics.diameter, height: GhostMetrics.diameter)
             Text(character.name)
                 .font(.system(size: 10, weight: .bold))
                 .foregroundStyle(.white)
@@ -34,7 +32,7 @@ struct DragPreview: View {
                 Circle()
                     .fill(validityColor.opacity(0.4))
                     .overlay(Circle().stroke(validityColor, lineWidth: 2))
-                    .frame(width: Self.diameter, height: Self.diameter)
+                    .frame(width: GhostMetrics.diameter, height: GhostMetrics.diameter)
                     .allowsHitTesting(false)
             }
         }
