@@ -10,7 +10,9 @@ import SpriteKit
 class HumanNode: SKNode {
     private let moveSpeed: CGFloat = 100
     private var iconLabel: SKLabelNode!
-    
+
+    private(set) var hp: CGFloat = 1
+
     override init () {
         super.init()
         iconLabel = SKLabelNode(text: "🏃🏻‍➡️")
@@ -18,8 +20,17 @@ class HumanNode: SKNode {
         iconLabel.verticalAlignmentMode = .center
         addChild(iconLabel)
     }
-    
+
     required init?(coder: NSCoder) {fatalError()}
+
+    func takeDamage(_ amount: CGFloat) {
+        guard hp > 0 else { return }
+        hp = max(0, hp - amount)
+        if hp <= 0 {
+            removeAllActions()
+            run(.sequence([.fadeOut(withDuration: 0.15), .removeFromParent()]))
+        }
+    }
     
     func followPath(_ waypoints: [CGPoint], curveRadius: CGFloat = 40) {
         guard waypoints.count > 1 else { return }
