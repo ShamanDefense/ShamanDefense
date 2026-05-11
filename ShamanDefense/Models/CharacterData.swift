@@ -16,6 +16,26 @@ enum GhostMetrics {
     static let diameter: CGFloat = 30
 }
 
+struct TowerStats: Hashable {
+    let range: CGFloat
+    let fireInterval: TimeInterval
+    let damage: CGFloat
+    let projectileSpeed: CGFloat
+    let aoeRadius: CGFloat?
+
+    init(range: CGFloat,
+         fireInterval: TimeInterval,
+         damage: CGFloat,
+         projectileSpeed: CGFloat,
+         aoeRadius: CGFloat? = nil) {
+        self.range = range
+        self.fireInterval = fireInterval
+        self.damage = damage
+        self.projectileSpeed = projectileSpeed
+        self.aoeRadius = aoeRadius
+    }
+}
+
 enum GhostID: String, CaseIterable, Hashable {
     case keti, poci, gugun, yayang, yuyul
 }
@@ -27,14 +47,27 @@ struct CharacterData: Identifiable, Hashable {
     let symbol: String
     let tint: Color
     let kind: EntityKind
+    let tower: TowerStats?
+
+    var range: CGFloat? { tower?.range }
 }
 
 struct GameCollection {
+    static func character(for id: GhostID) -> CharacterData {
+        guard let c = allCharacters.first(where: { $0.id == id }) else {
+            fatalError("No CharacterData for \(id)")
+        }
+        return c
+    }
+
     static let allCharacters: [CharacterData] = [
-        CharacterData(id: .keti,   name: "Keti",   cost: 3, symbol: "flame.fill",    tint: .orange, kind: .tower),
-        CharacterData(id: .poci,   name: "Poci",   cost: 4, symbol: "drop.fill",     tint: .cyan,   kind: .tower),
-        CharacterData(id: .gugun,  name: "Gugun",  cost: 5, symbol: "bolt.fill",     tint: .yellow, kind: .tower),
-        CharacterData(id: .yayang, name: "Yayang", cost: 2, symbol: "hare.fill",     tint: .pink,   kind: .trap),
-        CharacterData(id: .yuyul,  name: "Yuyul",  cost: 2, symbol: "tortoise.fill", tint: .purple, kind: .trap)
+        CharacterData(id: .keti,   name: "Keti",   cost: 3, symbol: "flame.fill",    tint: .orange, kind: .tower,
+                      tower: TowerStats(range: 100, fireInterval: 2.0, damage: 1, projectileSpeed: 420)),
+        CharacterData(id: .poci,   name: "Poci",   cost: 4, symbol: "drop.fill",     tint: .cyan,   kind: .tower,
+                      tower: TowerStats(range: 60,  fireInterval: 0.8, damage: 1, projectileSpeed: 600)),
+        CharacterData(id: .gugun,  name: "Gugun",  cost: 5, symbol: "bolt.fill",     tint: .yellow, kind: .tower,
+                      tower: TowerStats(range: 70, fireInterval: 1.2, damage: 1, projectileSpeed: 500, aoeRadius: 50)),
+        CharacterData(id: .yayang, name: "Yayang", cost: 2, symbol: "hare.fill",     tint: .pink,   kind: .trap,  tower: nil),
+        CharacterData(id: .yuyul,  name: "Yuyul",  cost: 2, symbol: "tortoise.fill", tint: .purple, kind: .trap,  tower: nil)
     ]
 }

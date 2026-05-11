@@ -6,12 +6,6 @@
 //
 
 import SpriteKit
-import SwiftUI
-
-enum TileVariant {
-    case straightH, straightV
-    case cornerTR, cornerTL, cornerBR, cornerBL
-}
 
 final class GameScene: SKScene {
 
@@ -19,11 +13,13 @@ final class GameScene: SKScene {
     private let minPlacementSpacing: CGFloat = GhostMetrics.diameter
     private var pathManager: PathManager!
     private var waveManager: WaveManager!
-    private var placedPositions: [CGPoint] = []
 
     private func tooCloseToExisting(_ point: CGPoint) -> Bool {
-        for p in placedPositions where hypot(p.x - point.x, p.y - point.y) < minPlacementSpacing {
-            return true
+        for child in children {
+            guard let ghost = child as? GhostNode else { continue }
+            if hypot(ghost.position.x - point.x, ghost.position.y - point.y) < minPlacementSpacing {
+                return true
+            }
         }
         return false
     }
@@ -44,7 +40,7 @@ final class GameScene: SKScene {
         if tooCloseToExisting(scenePoint) { return false }
         guard let pathManager else { return false }
         let dist = pathManager.distanceToPath(scenePoint)
-        let ghostRadius = GhostNode.diameter / 2
+        let ghostRadius = GhostMetrics.diameter / 2
         let pathHalf = pathManager.pathHalfWidth
         switch character.kind {
         case .tower: return dist > ghostRadius + pathHalf
@@ -57,7 +53,10 @@ final class GameScene: SKScene {
         let node = Self.makeNode(for: character)
         node.position = scenePoint
         addChild(node)
-        placedPositions.append(scenePoint)
+        if let trap = node as? TrapNode {
+            trap.pathWaypoints = pathManager.waypoints
+            trap.arm()
+        }
     }
 
     static func makeNode(for character: CharacterData) -> GhostNode {

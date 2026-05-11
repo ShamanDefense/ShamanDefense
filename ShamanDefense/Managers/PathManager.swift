@@ -7,6 +7,11 @@
 
 import SpriteKit
 
+enum TileVariant {
+    case straightH, straightV
+    case cornerTR, cornerTL, cornerBR, cornerBL
+}
+
 class PathManager {
     
     private let tileSize: CGFloat
