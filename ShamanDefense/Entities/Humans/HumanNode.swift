@@ -30,6 +30,24 @@ class HumanNode: SKNode {
             run(.sequence([.fadeOut(withDuration: 0.15), .removeFromParent()]))
         }
     }
+
+    func applySlow(factor: CGFloat, duration: TimeInterval) {
+        speed = factor
+        guard let scene else { return }
+        scene.run(.sequence([
+            .wait(forDuration: duration),
+            .run { [weak self] in self?.speed = 1 }
+        ]))
+    }
+
+    func applyFreeze(duration: TimeInterval) {
+        isPaused = true
+        guard let scene else { return }
+        scene.run(.sequence([
+            .wait(forDuration: duration),
+            .run { [weak self] in self?.isPaused = false }
+        ]))
+    }
     
     func followPath(_ waypoints: [CGPoint], curveRadius: CGFloat = 40) {
         guard waypoints.count > 1 else { return }

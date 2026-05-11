@@ -21,6 +21,18 @@ struct DragPreview: View {
 
     var body: some View {
         ZStack {
+            if let range = character.range {
+                Circle()
+                    .fill(character.tint.opacity(0.12))
+                    .overlay(
+                        Circle().strokeBorder(
+                            character.tint.opacity(0.7),
+                            style: StrokeStyle(lineWidth: 1.5, dash: [6, 4])
+                        )
+                    )
+                    .frame(width: range * 2, height: range * 2)
+                    .allowsHitTesting(false)
+            }
             Circle()
                 .fill(character.tint)
                 .overlay(Circle().stroke(Color.black, lineWidth: 1))

@@ -4,34 +4,26 @@
 //
 
 import SpriteKit
+import SwiftUI
 
 class TowerNode: GhostNode {
-    let range: CGFloat
-    let fireInterval: TimeInterval
-    let damage: CGFloat
+    let stats: TowerStats
     let projectileColor: SKColor
-    let projectileSpeed: CGFloat
 
-    init(displayName: String,
-         fillColor: SKColor,
-         range: CGFloat,
-         fireInterval: TimeInterval,
-         damage: CGFloat,
-         projectileColor: SKColor,
-         projectileSpeed: CGFloat = 420) {
-        self.range = range
-        self.fireInterval = fireInterval
-        self.damage = damage
-        self.projectileColor = projectileColor
-        self.projectileSpeed = projectileSpeed
-        super.init(displayName: displayName, fillColor: fillColor)
+    init(character: CharacterData) {
+        guard let stats = character.tower else {
+            fatalError("TowerNode requires CharacterData.tower stats (id=\(character.id))")
+        }
+        self.stats = stats
+        self.projectileColor = SKColor(character.tint)
+        super.init(displayName: character.name, fillColor: SKColor(character.tint))
         startFiring()
     }
 
     required init?(coder: NSCoder) { fatalError("init(coder:) not implemented") }
 
     private func startFiring() {
-        let wait = SKAction.wait(forDuration: fireInterval)
+        let wait = SKAction.wait(forDuration: stats.fireInterval)
         let fire = SKAction.run { [weak self] in self?.tryFire() }
         run(.repeatForever(.sequence([wait, fire])), withKey: "tower.fire")
     }
@@ -39,7 +31,7 @@ class TowerNode: GhostNode {
     private func tryFire() {
         guard let scene else { return }
         var nearest: HumanNode?
-        var bestDist = range
+        var bestDist = stats.range
         for child in scene.children {
             guard let human = child as? HumanNode, human.hp > 0 else { continue }
             let d = hypot(human.position.x - position.x, human.position.y - position.y)
@@ -61,13 +53,15 @@ class TowerNode: GhostNode {
         projectile.zPosition = 5
         scene.addChild(projectile)
 
-        let speed = projectileSpeed
-        let damageAmount = damage
+        let speed = stats.projectileSpeed
+        let damageAmount = stats.damage
         let hitRadius: CGFloat = 14
         let maxLife: TimeInterval = 3
         var lastElapsed: CGFloat = 0
 
-        let homing = SKAction.customAction(withDuration: maxLife) { [weak target] node, elapsed in
+        let aoeRadius = stats.aoeRadius
+        let projectileColor = self.projectileColor
+        let homing = SKAction.customAction(withDuration: maxLife) { [weak target, weak scene] node, elapsed in
             let dt = max(0, elapsed - lastElapsed)
             lastElapsed = elapsed
 
@@ -82,7 +76,11 @@ class TowerNode: GhostNode {
             let dist = hypot(dx, dy)
 
             if dist <= hitRadius {
-                target.takeDamage(damageAmount)
+                if let aoeRadius, let scene {
+                    TowerNode.applyAoEDamage(at: node.position, radius: aoeRadius, amount: damageAmount, in: scene, color: projectileColor)
+                } else {
+                    target.takeDamage(damageAmount)
+                }
                 node.removeAllActions()
                 node.removeFromParent()
                 return
@@ -99,5 +97,32 @@ class TowerNode: GhostNode {
             }
         }
         projectile.run(.sequence([homing, .removeFromParent()]))
+    }
+
+    private static func applyAoEDamage(at point: CGPoint,
+                                       radius: CGFloat,
+                                       amount: CGFloat,
+                                       in scene: SKScene,
+                                       color: SKColor) {
+        let flash = SKShapeNode(circleOfRadius: radius)
+        flash.position = point
+        flash.fillColor = color.withAlphaComponent(0.35)
+        flash.strokeColor = color
+        flash.lineWidth = 2
+        flash.zPosition = 4
+        scene.addChild(flash)
+        flash.run(.sequence([
+            .group([.fadeOut(withDuration: 0.25), .scale(to: 1.2, duration: 0.25)]),
+            .removeFromParent()
+        ]))
+
+        for child in scene.children {
+            guard let human = child as? HumanNode, human.hp > 0 else { continue }
+            let dx = human.position.x - point.x
+            let dy = human.position.y - point.y
+            if hypot(dx, dy) <= radius {
+                human.takeDamage(amount)
+            }
+        }
     }
 }
