@@ -5,6 +5,7 @@
 
 import GameplayKit
 import SpriteKit
+import SwiftUI
 
 enum EntityFactory {
 
@@ -39,5 +40,74 @@ enum EntityFactory {
         ))
 
         return entity
+    }
+
+    static func makeTower(_ character: CharacterData) -> GameEntity {
+        guard let stats = character.tower else {
+            fatalError("makeTower requires character.tower stats (id=\(character.id))")
+        }
+        let entity = GameEntity(archetype: .tower)
+
+        let color = SKColor(character.tint)
+        let body = makeGhostBody(displayName: character.name, fillColor: color)
+
+        entity.addComponent(SpriteComponent(node: body))
+        entity.addComponent(TeamComponent(team: .ghost))
+        entity.addComponent(TargetingComponent(range: stats.range))
+        entity.addComponent(FiringComponent(fireInterval: stats.fireInterval))
+        entity.addComponent(ProjectileLauncherComponent(
+            projectileSpeed: stats.projectileSpeed,
+            damage: stats.damage,
+            aoeRadius: stats.aoeRadius,
+            color: color
+        ))
+        entity.addComponent(StateMachineComponent(
+            states: [
+                TowerIdleState(),
+                TowerAcquiringState(),
+                TowerFiringState(),
+                TowerCooldownState(),
+            ],
+            initialState: TowerIdleState.self
+        ))
+
+        return entity
+    }
+
+    static func makeProjectile(from origin: CGPoint,
+                               target: GameEntity,
+                               launcher: ProjectileLauncherComponent) -> GameEntity {
+        let entity = GameEntity(archetype: .projectile)
+
+        let node = SKShapeNode(circleOfRadius: 4)
+        node.fillColor = launcher.color
+        node.strokeColor = .clear
+        node.position = origin
+        node.zPosition = 5
+
+        entity.addComponent(SpriteComponent(node: node))
+        entity.addComponent(HomingComponent(target: target, speed: launcher.projectileSpeed, hitRadius: launcher.hitRadius))
+        entity.addComponent(DamageOnHitComponent(damage: launcher.damage, aoeRadius: launcher.aoeRadius, color: launcher.color))
+        entity.addComponent(LifetimeComponent(duration: 3))
+
+        return entity
+    }
+
+    static func makeGhostBody(displayName: String, fillColor: SKColor) -> SKShapeNode {
+        let d = GhostMetrics.diameter
+        let r = d / 2
+        let node = SKShapeNode(path: CGPath(ellipseIn: CGRect(x: -r, y: -r, width: d, height: d), transform: nil))
+        node.fillColor = fillColor
+        node.strokeColor = SKColor.black.withAlphaComponent(0.4)
+        node.lineWidth = 1
+
+        let label = SKLabelNode(text: displayName)
+        label.fontName = "AvenirNext-Bold"
+        label.fontSize = 10
+        label.fontColor = .white
+        label.verticalAlignmentMode = .center
+        label.horizontalAlignmentMode = .center
+        node.addChild(label)
+        return node
     }
 }

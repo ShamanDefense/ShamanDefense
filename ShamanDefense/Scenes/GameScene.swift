@@ -25,9 +25,9 @@ final class GameScene: SKScene {
     let fxLayer = SKNode()
 
     private func tooCloseToExisting(_ point: CGPoint) -> Bool {
-        for child in children {
-            guard let ghost = child as? GhostNode else { continue }
-            if hypot(ghost.position.x - point.x, ghost.position.y - point.y) < minPlacementSpacing {
+        for entity in registry.towers.union(registry.traps) {
+            guard let pos = entity.component(ofType: SpriteComponent.self)?.position else { continue }
+            if hypot(pos.x - point.x, pos.y - point.y) < minPlacementSpacing {
                 return true
             }
         }
@@ -50,11 +50,11 @@ final class GameScene: SKScene {
         addChild(projectilesLayer)
         addChild(fxLayer)
 
-        let pathFollowSystem      = GKComponentSystem<GKComponent>(componentClass: PathFollowComponent.self)
-        let stateMachineSystem    = GKComponentSystem<GKComponent>(componentClass: StateMachineComponent.self)
         registry = EntityRegistry(systems: [
-            pathFollowSystem,
-            stateMachineSystem,
+            GKComponentSystem<GKComponent>(componentClass: PathFollowComponent.self),
+            GKComponentSystem<GKComponent>(componentClass: HomingComponent.self),
+            GKComponentSystem<GKComponent>(componentClass: LifetimeComponent.self),
+            GKComponentSystem<GKComponent>(componentClass: StateMachineComponent.self),
         ])
 
         pathManager = PathManager(scene: self, tileSize: tileSize)
@@ -74,6 +74,8 @@ final class GameScene: SKScene {
         lastUpdateTime = currentTime
         registry?.update(deltaTime: dt)
     }
+
+    // MARK: - Spawn / install
 
     func spawnHuman() {
         guard let pathManager else { return }
@@ -97,6 +99,66 @@ final class GameScene: SKScene {
         installEntity(entity, in: humansLayer)
     }
 
+    func spawnTower(_ character: CharacterData, at point: CGPoint) {
+        let entity = EntityFactory.makeTower(character)
+        entity.component(ofType: SpriteComponent.self)?.position = point
+        installEntity(entity, in: towersLayer)
+    }
+
+    func spawnProjectile(from origin: CGPoint,
+                         target: GameEntity,
+                         launcher: ProjectileLauncherComponent) {
+        let entity = EntityFactory.makeProjectile(from: origin, target: target, launcher: launcher)
+
+        if let homing = entity.component(ofType: HomingComponent.self) {
+            homing.onImpact = { [weak self, weak entity] point, target in
+                guard let self, let entity else { return }
+                if let damage = entity.component(ofType: DamageOnHitComponent.self) {
+                    if let aoe = damage.aoeRadius {
+                        self.applyAoEDamage(at: point, radius: aoe, amount: damage.damage, color: damage.color)
+                    } else if let target,
+                              let health = target.component(ofType: HealthComponent.self) {
+                        health.takeDamage(damage.damage)
+                    }
+                }
+                self.removeEntity(entity)
+            }
+            homing.onTargetLost = { [weak self, weak entity] in
+                guard let self, let entity else { return }
+                self.removeEntity(entity)
+            }
+        }
+        if let lifetime = entity.component(ofType: LifetimeComponent.self) {
+            lifetime.onExpire = { [weak self, weak entity] in
+                guard let self, let entity else { return }
+                self.removeEntity(entity)
+            }
+        }
+
+        installEntity(entity, in: projectilesLayer)
+    }
+
+    func applyAoEDamage(at point: CGPoint, radius: CGFloat, amount: CGFloat, color: SKColor) {
+        let flash = SKShapeNode(circleOfRadius: radius)
+        flash.position = point
+        flash.fillColor = color.withAlphaComponent(0.35)
+        flash.strokeColor = color
+        flash.lineWidth = 2
+        fxLayer.addChild(flash)
+        flash.run(.sequence([
+            .group([.fadeOut(withDuration: 0.25), .scale(to: 1.2, duration: 0.25)]),
+            .removeFromParent()
+        ]))
+
+        for human in registry.humans {
+            guard let pos = human.component(ofType: SpriteComponent.self)?.position,
+                  let health = human.component(ofType: HealthComponent.self), health.isAlive else { continue }
+            if hypot(pos.x - point.x, pos.y - point.y) <= radius {
+                health.takeDamage(amount)
+            }
+        }
+    }
+
     func installEntity(_ entity: GameEntity, in layer: SKNode) {
         if let node = entity.component(ofType: SpriteComponent.self)?.node {
             layer.addChild(node)
@@ -110,6 +172,8 @@ final class GameScene: SKScene {
             node.removeFromParent()
         }
     }
+
+    // MARK: - Placement
 
     func canPlace(_ character: CharacterData, at scenePoint: CGPoint) -> Bool {
         if tooCloseToExisting(scenePoint) { return false }
@@ -125,22 +189,26 @@ final class GameScene: SKScene {
 
     func place(_ character: CharacterData, at scenePoint: CGPoint) {
         guard canPlace(character, at: scenePoint) else { return }
-        let node = Self.makeNode(for: character)
-        node.position = scenePoint
-        addChild(node)
-        if let trap = node as? TrapNode {
-            trap.pathWaypoints = pathManager.waypoints
-            trap.arm()
+        switch character.kind {
+        case .tower:
+            spawnTower(character, at: scenePoint)
+        case .trap:
+            // Legacy trap path until Phase 5.
+            let node = Self.makeLegacyTrap(for: character)
+            node.position = scenePoint
+            addChild(node)
+            if let trap = node as? TrapNode {
+                trap.pathWaypoints = pathManager.waypoints
+                trap.arm()
+            }
         }
     }
 
-    static func makeNode(for character: CharacterData) -> GhostNode {
+    static func makeLegacyTrap(for character: CharacterData) -> GhostNode {
         switch character.id {
-        case .keti:   return KetiNode()
-        case .poci:   return PociNode()
-        case .gugun:  return GugunNode()
         case .yayang: return YayangNode()
         case .yuyul:  return YuyulNode()
+        default: fatalError("not a trap")
         }
     }
 }
