@@ -38,7 +38,7 @@ class WaveManager {
         human.onDefeat = { [weak scene] in scene?.humanDefeated() }
         
         scene.addChild(human)
-        human.followPath(waypoints, curveRadius: tileSize * 0.8) { [weak scene] in
+        human.followPath(waypoints) { [weak scene] in
                     scene?.humanReachedFinish()
                 }
     }
