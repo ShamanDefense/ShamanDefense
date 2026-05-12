@@ -9,8 +9,8 @@ import SpriteKit
 
 class HumanNode: SKNode {
     private let moveSpeed: CGFloat = 100
-
     private(set) var hp: CGFloat = 1
+    var onDefeat: (() -> Void)?
 
     override init () {
         super.init()
@@ -27,6 +27,7 @@ class HumanNode: SKNode {
         hp = max(0, hp - amount)
         if hp <= 0 {
             removeAllActions()
+            onDefeat?()
             run(.sequence([.fadeOut(withDuration: 0.15), .removeFromParent()]))
         }
     }
@@ -49,7 +50,7 @@ class HumanNode: SKNode {
         ]))
     }
     
-    func followPath(_ waypoints: [CGPoint], curveRadius: CGFloat = 40) {
+    func followPath(_ waypoints: [CGPoint], curveRadius: CGFloat = 40, onReachFinish: (() -> Void)? = nil) {
         guard waypoints.count > 1 else { return }
         let smoothPath = buildCurvedPath(waypoints: waypoints, curveRadius: curveRadius)
         
@@ -59,7 +60,9 @@ class HumanNode: SKNode {
             orientToPath: false,
             speed:        moveSpeed
         )
-        run(.sequence([follow, .removeFromParent()]))
+        
+        let notifyFinish = SKAction.run { onReachFinish?() }
+        run(.sequence([follow, notifyFinish, .removeFromParent()]))
     }
     
     private func buildCurvedPath(waypoints: [CGPoint], curveRadius: CGFloat) -> CGPath {
@@ -103,7 +106,6 @@ class HumanNode: SKNode {
             path.addQuadCurve(to: curveEnd, control: corner)
         }
         
-        // Lurus ke waypoint terakhir
         path.addLine(to: waypoints.last!)
         
         return path
