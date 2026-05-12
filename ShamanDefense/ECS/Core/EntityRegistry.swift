@@ -12,9 +12,9 @@ final class EntityRegistry {
     private(set) var projectiles: Set<GameEntity> = []
     private(set) var all: Set<GameEntity> = []
 
-    private let systems: [GKComponentSystem<GKComponent>]
+    private let systems: [GameSystem]
 
-    init(systems: [GKComponentSystem<GKComponent>]) {
+    init(systems: [GameSystem]) {
         self.systems = systems
     }
 
@@ -29,7 +29,7 @@ final class EntityRegistry {
         case .scenery:    break
         }
         for system in systems {
-            system.addComponent(foundIn: entity)
+            system.add(entity)
         }
     }
 
@@ -41,7 +41,7 @@ final class EntityRegistry {
         traps.remove(entity)
         projectiles.remove(entity)
         for system in systems {
-            system.removeComponent(foundIn: entity)
+            system.remove(entity)
         }
     }
 

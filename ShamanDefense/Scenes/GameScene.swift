@@ -53,14 +53,14 @@ final class GameScene: SKScene {
         addChild(fxLayer)
 
         registry = EntityRegistry(systems: [
-            GKComponentSystem<GKComponent>(componentClass: EffectsComponent.self),
-            GKComponentSystem<GKComponent>(componentClass: PathFollowComponent.self),
-            GKComponentSystem<GKComponent>(componentClass: HomingComponent.self),
-            GKComponentSystem<GKComponent>(componentClass: LifetimeComponent.self),
-            GKComponentSystem<GKComponent>(componentClass: ProximityTriggerComponent.self),
-            GKComponentSystem<GKComponent>(componentClass: PathRunnerComponent.self),
-            GKComponentSystem<GKComponent>(componentClass: SlowAuraComponent.self),
-            GKComponentSystem<GKComponent>(componentClass: StateMachineComponent.self),
+            EffectsSystem(),
+            PathFollowSystem(),
+            HomingSystem(),
+            LifetimeSystem(),
+            ProximityTriggerSystem(),
+            PathRunnerSystem(),
+            SlowAuraSystem(),
+            StateMachineSystem(),
         ])
 
         pathManager = PathManager(scene: self, tileSize: tileSize)
