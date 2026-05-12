@@ -17,6 +17,7 @@ final class GameScene: SKScene {
 
     private(set) var registry: EntityRegistry!
     private var lastUpdateTime: TimeInterval = 0
+    private var pendingRemovals: [GameEntity] = []
 
     let humansLayer = SKNode()
     let towersLayer = SKNode()
@@ -78,6 +79,19 @@ final class GameScene: SKScene {
         }
         lastUpdateTime = currentTime
         registry?.update(deltaTime: dt)
+        flushPendingRemovals()
+    }
+
+    private func flushPendingRemovals() {
+        guard !pendingRemovals.isEmpty else { return }
+        let batch = pendingRemovals
+        pendingRemovals.removeAll(keepingCapacity: true)
+        for entity in batch {
+            registry.remove(entity)
+            if let node = entity.component(ofType: SpriteComponent.self)?.node, node.parent != nil {
+                node.removeFromParent()
+            }
+        }
     }
 
     // MARK: - Spawn / install
@@ -172,10 +186,7 @@ final class GameScene: SKScene {
     }
 
     func removeEntity(_ entity: GameEntity) {
-        registry.remove(entity)
-        if let node = entity.component(ofType: SpriteComponent.self)?.node, node.parent != nil {
-            node.removeFromParent()
-        }
+        pendingRemovals.append(entity)
     }
 
     // MARK: - Placement
