@@ -33,13 +33,10 @@ struct DragPreview: View {
                     .frame(width: range * 2, height: range * 2)
                     .allowsHitTesting(false)
             }
-            Circle()
-                .fill(character.tint)
-                .overlay(Circle().stroke(Color.black, lineWidth: 1))
-                .frame(width: GhostMetrics.diameter, height: GhostMetrics.diameter)
-            Text(character.name)
-                .font(.system(size: 10, weight: .bold))
-                .foregroundStyle(.white)
+            Image("\(character.id.rawValue)_bottom")
+                .resizable()
+                .scaledToFit()
+                .frame(height: CharacterSprites.spriteHeight)
             if let validityColor {
                 Circle()
                     .fill(validityColor.opacity(0.4))
