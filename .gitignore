@@ -11,3 +11,6 @@ DerivedData/
 # macOS Finder
 .DS_Store
 **/.DS_Store
+
+# Raw asset drop folder (sources imported into Assets.xcassets)
+SHAMAN DEFENSE/
