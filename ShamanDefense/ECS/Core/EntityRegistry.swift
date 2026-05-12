@@ -12,6 +12,7 @@ final class EntityRegistry {
     private(set) var projectiles: Set<GameEntity> = []
     private(set) var all: Set<GameEntity> = []
     private(set) var path: PathComponent?
+    private(set) var score: ScoreComponent?
 
     private let systems: [GameSystem]
 
@@ -32,6 +33,9 @@ final class EntityRegistry {
         if let pc = entity.component(ofType: PathComponent.self) {
             path = pc
         }
+        if let sc = entity.component(ofType: ScoreComponent.self) {
+            score = sc
+        }
         for system in systems {
             system.add(entity)
         }
@@ -46,6 +50,9 @@ final class EntityRegistry {
         projectiles.remove(entity)
         if let pc = entity.component(ofType: PathComponent.self), pc === path {
             path = nil
+        }
+        if let sc = entity.component(ofType: ScoreComponent.self), sc === score {
+            score = nil
         }
         for system in systems {
             system.remove(entity)

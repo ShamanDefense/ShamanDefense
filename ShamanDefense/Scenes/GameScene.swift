@@ -23,6 +23,12 @@ final class GameScene: SKScene {
     let trapsLayer = SKNode()
     let projectilesLayer = SKNode()
     let fxLayer = SKNode()
+    let hudLayer = SKNode()
+
+    private var scoreLabel: SKLabelNode!
+    private var gameOverNode: GameOverNode?
+    private var spawnerEntity: SpawnerEntity?
+    private(set) var isGameOver = false
 
     private func tooCloseToExisting(_ point: CGPoint) -> Bool {
         for entity in registry.all {
@@ -46,12 +52,14 @@ final class GameScene: SKScene {
         trapsLayer.zPosition = 1
         projectilesLayer.zPosition = 5
         fxLayer.zPosition = 4
+        hudLayer.zPosition = 50
         addChild(mapLayer)
         addChild(humansLayer)
         addChild(towersLayer)
         addChild(trapsLayer)
         addChild(projectilesLayer)
         addChild(fxLayer)
+        addChild(hudLayer)
 
         registry = EntityRegistry(systems: [
             EffectsSystem(),
@@ -66,10 +74,13 @@ final class GameScene: SKScene {
         ])
 
         loadMap()
+        registry.add(ScoreEntity())
+        buildScoreLabel()
 
         let spawner = SpawnerEntity(interval: 3) { [weak self] in
             self?.spawnHuman()
         }
+        spawnerEntity = spawner
         registry.add(spawner)
     }
 
@@ -106,6 +117,7 @@ final class GameScene: SKScene {
             pf.onArrive = { [weak self, weak entity] in
                 guard let self, let entity else { return }
                 self.removeEntity(entity)
+                self.humanReachedFinish()
             }
         }
         if let health = entity.component(ofType: HealthComponent.self),
@@ -116,9 +128,75 @@ final class GameScene: SKScene {
                 node.removeAllActions()
                 node.run(.sequence([.fadeOut(withDuration: 0.15), .removeFromParent()]))
                 self.removeEntity(entity)
+                self.humanDefeated()
             }
         }
         installEntity(entity, in: humansLayer)
+    }
+
+    // MARK: - Score / game over
+
+    private func buildScoreLabel() {
+        scoreLabel = SKLabelNode(fontNamed: "Helvetica-Bold")
+        scoreLabel.text = "0"
+        scoreLabel.fontSize = 28
+        scoreLabel.fontColor = .white
+        scoreLabel.horizontalAlignmentMode = .center
+        scoreLabel.verticalAlignmentMode = .top
+        scoreLabel.position = CGPoint(x: size.width / 2, y: size.height - 52)
+        hudLayer.addChild(scoreLabel)
+    }
+
+    func humanDefeated() {
+        guard !isGameOver, let score = registry.score else { return }
+        score.add(1)
+        scoreLabel.text = "\(score.current)"
+        scoreLabel.removeAction(forKey: "pop")
+        scoreLabel.run(.sequence([
+            .scale(to: 1.35, duration: 0.08),
+            .scale(to: 1.00, duration: 0.08)
+        ]), withKey: "pop")
+    }
+
+    func humanReachedFinish() {
+        guard !isGameOver, let score = registry.score else { return }
+        isGameOver = true
+        if let spawner = spawnerEntity {
+            removeEntity(spawner)
+            spawnerEntity = nil
+        }
+        let wasFirstPlay = score.isFirstPlay
+        score.saveAndFinalize()
+
+        let overlay = GameOverNode(score: score.current,
+                                   highScore: score.high,
+                                   isFirstPlay: wasFirstPlay,
+                                   sceneSize: size)
+        overlay.position = CGPoint(x: size.width / 2, y: size.height / 2)
+        overlay.zPosition = 100
+        addChild(overlay)
+        gameOverNode = overlay
+
+        overlay.onRetry    = { [weak self] in self?.restartGame() }
+        overlay.onMainMenu = { [weak self] in self?.goToMainMenu() }
+    }
+
+    private func restartGame() {
+        gameOverNode = nil
+        let newScene = GameScene(size: size)
+        newScene.scaleMode = scaleMode
+        view?.presentScene(newScene, transition: .fade(withDuration: 0.4))
+    }
+
+    private func goToMainMenu() {
+    }
+
+    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        guard let touch = touches.first else { return }
+        let loc = touch.location(in: self)
+        if let overlay = gameOverNode {
+            overlay.handleTap(at: loc)
+        }
     }
 
     func spawnTower(_ character: CharacterData, at point: CGPoint) {
