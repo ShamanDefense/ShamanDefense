@@ -84,7 +84,7 @@ final class GameScene: SKScene {
 
     func spawnHuman() {
         guard let pathManager else { return }
-        let entity = EntityFactory.makeHuman(waypoints: pathManager.waypoints)
+        let entity = HumanEntity(waypoints: pathManager.waypoints)
         if let pf = entity.component(ofType: PathFollowComponent.self) {
             pf.onArrive = { [weak self, weak entity] in
                 guard let self, let entity else { return }
@@ -105,7 +105,7 @@ final class GameScene: SKScene {
     }
 
     func spawnTower(_ character: CharacterData, at point: CGPoint) {
-        let entity = EntityFactory.makeTower(character)
+        let entity = TowerEntity(character: character)
         entity.component(ofType: SpriteComponent.self)?.position = point
         installEntity(entity, in: towersLayer)
     }
@@ -113,7 +113,7 @@ final class GameScene: SKScene {
     func spawnProjectile(from origin: CGPoint,
                          target: GameEntity,
                          launcher: ProjectileLauncherComponent) {
-        let entity = EntityFactory.makeProjectile(from: origin, target: target, launcher: launcher)
+        let entity = ProjectileEntity(from: origin, target: target, launcher: launcher)
 
         if let homing = entity.component(ofType: HomingComponent.self) {
             homing.onImpact = { [weak self, weak entity] point, target in
@@ -205,7 +205,7 @@ final class GameScene: SKScene {
     }
 
     func spawnTrap(_ character: CharacterData, at point: CGPoint) {
-        let entity = EntityFactory.makeTrap(character, waypoints: pathManager.waypoints)
+        let entity = TrapEntity(character: character, pathWaypoints: pathManager.waypoints)
         entity.component(ofType: SpriteComponent.self)?.position = point
 
         if let trigger = entity.component(ofType: ProximityTriggerComponent.self) {

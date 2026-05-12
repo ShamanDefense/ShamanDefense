@@ -13,7 +13,7 @@ enum EntityArchetype {
     case scenery
 }
 
-final class GameEntity: GKEntity {
+class GameEntity: GKEntity {
     let archetype: EntityArchetype
 
     init(archetype: EntityArchetype) {
