@@ -52,6 +52,9 @@ final class SpriteAnimationComponent: GKComponent {
         case .up:           frames = upFrames
         case .down:         frames = downFrames
         }
+        if let first = frames.first {
+            sprite.size = CharacterSprites.size(for: first, height: sprite.size.height)
+        }
         sprite.removeAction(forKey: "walk")
         sprite.run(
             .repeatForever(.animate(with: frames, timePerFrame: timePerFrame, resize: false, restore: false)),

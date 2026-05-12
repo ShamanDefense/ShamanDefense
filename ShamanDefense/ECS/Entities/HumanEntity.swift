@@ -10,7 +10,7 @@ final class HumanEntity: GameEntity {
     private static let leftFrames   = [SKTexture(imageNamed: "human_left_1"),   SKTexture(imageNamed: "human_left_2")]
     private static let topFrames    = [SKTexture(imageNamed: "human_top_1"),    SKTexture(imageNamed: "human_top_2")]
     private static let bottomFrames = [SKTexture(imageNamed: "human_bottom_1"), SKTexture(imageNamed: "human_bottom_2")]
-    private static let spriteSize   = CGSize(width: 32, height: 50)
+    private static let spriteSize   = CharacterSprites.size(for: bottomFrames[0])
     static let moveSpeed: CGFloat = 100
     static let maxHp: CGFloat = 1
 

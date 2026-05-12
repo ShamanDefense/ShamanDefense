@@ -18,9 +18,13 @@ final class TowerEntity: GameEntity {
         super.init(archetype: .tower)
 
         let color = SKColor(character.tint)
-        let body = GhostBody.make(displayName: character.name, fillColor: color)
+        let texture = CharacterSprites.texture(for: character.id, facing: .down)
+        let sprite = SKSpriteNode(texture: texture, size: CharacterSprites.size(for: texture))
+        let root = SKNode()
+        root.addChild(sprite)
 
-        addComponent(SpriteComponent(node: body))
+        addComponent(SpriteComponent(node: root))
+        addComponent(DirectionalSpriteComponent(sprite: sprite, id: character.id))
         addComponent(TeamComponent(team: .ghost))
         addComponent(PlacementBlockerComponent(radius: GhostMetrics.diameter / 2))
         addComponent(TargetingComponent(range: stats.range))

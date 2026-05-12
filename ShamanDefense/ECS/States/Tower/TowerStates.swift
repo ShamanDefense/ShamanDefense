@@ -49,6 +49,12 @@ final class TowerFiringState: GameState {
             return
         }
 
+        if let dir = entity.component(ofType: DirectionalSpriteComponent.self),
+           let targetPos = target.component(ofType: SpriteComponent.self)?.position {
+            dir.face(dx: targetPos.x - sprite.position.x,
+                     dy: targetPos.y - sprite.position.y)
+        }
+
         scene.spawnProjectile(from: sprite.position, target: target, launcher: launcher)
         firing.resetCooldown()
         stateMachine?.enter(TowerCooldownState.self)
