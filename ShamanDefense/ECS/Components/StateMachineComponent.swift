@@ -7,8 +7,9 @@ import GameplayKit
 
 final class StateMachineComponent: GKComponent {
     let stateMachine: GKStateMachine
-    private let states: [GKState]
-    private let initialState: AnyClass
+    let states: [GKState]
+    let initialState: AnyClass
+    var didEnterInitial: Bool = false
 
     init(states: [GKState], initialState: AnyClass) {
         self.states = states
@@ -18,19 +19,6 @@ final class StateMachineComponent: GKComponent {
     }
 
     required init?(coder: NSCoder) { fatalError("init(coder:) not implemented") }
-
-    override func didAddToEntity() {
-        for state in states {
-            if let entityAware = state as? EntityAwareState {
-                entityAware.entity = entity as? GameEntity
-            }
-        }
-        stateMachine.enter(initialState)
-    }
-
-    override func update(deltaTime seconds: TimeInterval) {
-        stateMachine.update(deltaTime: seconds)
-    }
 }
 
 protocol EntityAwareState: AnyObject {

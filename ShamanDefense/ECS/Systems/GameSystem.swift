@@ -12,7 +12,9 @@ protocol GameSystem: AnyObject {
 }
 
 class ComponentSystem<T: GKComponent>: GameSystem {
-    private let inner = GKComponentSystem(componentClass: T.self)
+    let inner = GKComponentSystem(componentClass: T.self)
+
+    var components: [T] { inner.components as? [T] ?? [] }
 
     func add(_ entity: GameEntity) {
         inner.addComponent(foundIn: entity)
@@ -22,7 +24,5 @@ class ComponentSystem<T: GKComponent>: GameSystem {
         inner.removeComponent(foundIn: entity)
     }
 
-    func update(deltaTime: TimeInterval) {
-        inner.update(deltaTime: deltaTime)
-    }
+    func update(deltaTime: TimeInterval) {}
 }
