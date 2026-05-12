@@ -57,6 +57,7 @@ enum EntityFactory {
 
         entity.addComponent(SpriteComponent(node: body))
         entity.addComponent(TeamComponent(team: .ghost))
+        entity.addComponent(PlacementBlockerComponent(radius: GhostMetrics.diameter / 2))
         entity.addComponent(ProximityTriggerComponent(triggerRadius: stats.triggerRadius))
 
         var states: [GKState] = [TrapArmedState(), TrapSpentState()]
@@ -94,6 +95,7 @@ enum EntityFactory {
 
         entity.addComponent(SpriteComponent(node: body))
         entity.addComponent(TeamComponent(team: .ghost))
+        entity.addComponent(PlacementBlockerComponent(radius: GhostMetrics.diameter / 2))
         entity.addComponent(TargetingComponent(range: stats.range))
         entity.addComponent(FiringComponent(fireInterval: stats.fireInterval))
         entity.addComponent(ProjectileLauncherComponent(

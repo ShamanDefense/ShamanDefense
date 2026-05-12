@@ -25,9 +25,10 @@ final class GameScene: SKScene {
     let fxLayer = SKNode()
 
     private func tooCloseToExisting(_ point: CGPoint) -> Bool {
-        for entity in registry.towers.union(registry.traps) {
-            guard let pos = entity.component(ofType: SpriteComponent.self)?.position else { continue }
-            if hypot(pos.x - point.x, pos.y - point.y) < minPlacementSpacing {
+        for entity in registry.all {
+            guard let blocker = entity.component(ofType: PlacementBlockerComponent.self),
+                  let pos = entity.component(ofType: SpriteComponent.self)?.position else { continue }
+            if hypot(pos.x - point.x, pos.y - point.y) < blocker.radius + minPlacementSpacing / 2 {
                 return true
             }
         }
