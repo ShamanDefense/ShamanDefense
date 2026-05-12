@@ -36,12 +36,7 @@ enum EntityFactory {
         entity.addComponent(PathFollowComponent(waypoints: waypoints, speed: humanMoveSpeed))
         entity.addComponent(EffectsComponent())
         entity.addComponent(StateMachineComponent(
-            states: [
-                HumanWalkingState(),
-                HumanSlowedState(),
-                HumanFrozenState(),
-                HumanDyingState(),
-            ],
+            states: [HumanWalkingState(), HumanSlowedState(), HumanFrozenState()],
             initialState: HumanWalkingState.self
         ))
 
@@ -70,7 +65,9 @@ enum EntityFactory {
             states.append(YayangTriggeredState())
         case .yuyul:
             if let runSpeed = stats.runSpeed {
-                entity.addComponent(PathRunnerComponent(waypoints: waypoints, speed: runSpeed))
+                let runner = PathRunnerComponent(speed: runSpeed)
+                runner.configure(waypoints: waypoints)
+                entity.addComponent(runner)
             }
             if let r = stats.slowRadius, let f = stats.slowFactor, let d = stats.slowDuration {
                 entity.addComponent(SlowAuraComponent(radius: r, factor: f, duration: d))

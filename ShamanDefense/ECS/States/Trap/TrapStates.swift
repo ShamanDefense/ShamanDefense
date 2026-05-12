@@ -64,9 +64,13 @@ final class YayangTriggeredState: TrapTriggeredState {
 final class YuyulTriggeredState: TrapTriggeredState {
     override func didEnter(from previousState: GKState?) {
         guard let entity,
+              let sprite = entity.component(ofType: SpriteComponent.self),
+              let scene = sprite.node.scene as? GameScene,
               let runner = entity.component(ofType: PathRunnerComponent.self),
               let aura = entity.component(ofType: SlowAuraComponent.self) else { return }
 
+        let backwardWaypoints = scene.pathBackward(from: sprite.position)
+        runner.configure(waypoints: backwardWaypoints)
         aura.active = true
         runner.active = true
         runner.onComplete = { [weak self] in

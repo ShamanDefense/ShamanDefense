@@ -34,6 +34,26 @@ class PathManager {
         return best
     }
 
+    func nearestSegmentIndex(to point: CGPoint) -> Int {
+        guard waypoints.count >= 2 else { return 0 }
+        var best = CGFloat.greatestFiniteMagnitude
+        var idx = 0
+        for i in 0..<waypoints.count - 1 {
+            let d = pointToSegment(point, waypoints[i], waypoints[i + 1])
+            if d < best { best = d; idx = i }
+        }
+        return idx
+    }
+
+    func backwardPath(from point: CGPoint) -> [CGPoint] {
+        let nearest = nearestSegmentIndex(to: point)
+        var result: [CGPoint] = [point]
+        for i in stride(from: nearest, through: 0, by: -1) {
+            result.append(waypoints[i])
+        }
+        return result
+    }
+
     private func pointToSegment(_ p: CGPoint, _ a: CGPoint, _ b: CGPoint) -> CGFloat {
         let dx = b.x - a.x
         let dy = b.y - a.y

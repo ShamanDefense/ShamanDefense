@@ -7,9 +7,7 @@ import GameplayKit
 
 final class HumanWalkingState: GameState {
     override func isValidNextState(_ stateClass: AnyClass) -> Bool {
-        stateClass == HumanSlowedState.self
-            || stateClass == HumanFrozenState.self
-            || stateClass == HumanDyingState.self
+        stateClass == HumanSlowedState.self || stateClass == HumanFrozenState.self
     }
 
     override func update(deltaTime seconds: TimeInterval) {
@@ -24,9 +22,7 @@ final class HumanWalkingState: GameState {
 
 final class HumanSlowedState: GameState {
     override func isValidNextState(_ stateClass: AnyClass) -> Bool {
-        stateClass == HumanWalkingState.self
-            || stateClass == HumanFrozenState.self
-            || stateClass == HumanDyingState.self
+        stateClass == HumanWalkingState.self || stateClass == HumanFrozenState.self
     }
 
     override func update(deltaTime seconds: TimeInterval) {
@@ -41,9 +37,7 @@ final class HumanSlowedState: GameState {
 
 final class HumanFrozenState: GameState {
     override func isValidNextState(_ stateClass: AnyClass) -> Bool {
-        stateClass == HumanWalkingState.self
-            || stateClass == HumanSlowedState.self
-            || stateClass == HumanDyingState.self
+        stateClass == HumanWalkingState.self || stateClass == HumanSlowedState.self
     }
 
     override func update(deltaTime seconds: TimeInterval) {
@@ -56,8 +50,4 @@ final class HumanFrozenState: GameState {
             }
         }
     }
-}
-
-final class HumanDyingState: GameState {
-    override func isValidNextState(_ stateClass: AnyClass) -> Bool { false }
 }

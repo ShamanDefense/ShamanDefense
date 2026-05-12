@@ -7,7 +7,7 @@ import GameplayKit
 import CoreGraphics
 
 final class PathRunnerComponent: GKComponent {
-    private let waypoints: [CGPoint]
+    private(set) var waypoints: [CGPoint] = []
     let speed: CGFloat
     var active: Bool = false
     var onComplete: (() -> Void)?
@@ -15,13 +15,18 @@ final class PathRunnerComponent: GKComponent {
     private var segmentIndex: Int = 0
     private var completed: Bool = false
 
-    init(waypoints: [CGPoint], speed: CGFloat) {
-        self.waypoints = waypoints
+    init(speed: CGFloat) {
         self.speed = speed
         super.init()
     }
 
     required init?(coder: NSCoder) { fatalError("init(coder:) not implemented") }
+
+    func configure(waypoints: [CGPoint]) {
+        self.waypoints = waypoints
+        segmentIndex = 0
+        completed = false
+    }
 
     override func update(deltaTime seconds: TimeInterval) {
         guard active, !completed,

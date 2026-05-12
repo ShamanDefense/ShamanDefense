@@ -35,7 +35,6 @@ final class PathFollowComponent: GKComponent {
               let sprite = sprite,
               segmentIndex + 1 < waypoints.count else { return }
 
-        let target = waypoints[segmentIndex + 1]
         var step = baseSpeed * speedMultiplier * CGFloat(seconds)
         var pos = sprite.position
 
@@ -59,7 +58,6 @@ final class PathFollowComponent: GKComponent {
         }
 
         sprite.position = pos
-        _ = target
 
         if segmentIndex + 1 >= waypoints.count {
             arrived = true

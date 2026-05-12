@@ -180,6 +180,10 @@ final class GameScene: SKScene {
 
     // MARK: - Placement
 
+    func pathBackward(from point: CGPoint) -> [CGPoint] {
+        pathManager.backwardPath(from: point)
+    }
+
     func canPlace(_ character: CharacterData, at scenePoint: CGPoint) -> Bool {
         if tooCloseToExisting(scenePoint) { return false }
         guard let pathManager else { return false }
