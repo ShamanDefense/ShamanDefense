@@ -11,6 +11,7 @@ final class EntityRegistry {
     private(set) var traps: Set<GameEntity> = []
     private(set) var projectiles: Set<GameEntity> = []
     private(set) var all: Set<GameEntity> = []
+    private(set) var path: PathComponent?
 
     private let systems: [GameSystem]
 
@@ -28,6 +29,9 @@ final class EntityRegistry {
         case .projectile: projectiles.insert(entity)
         case .scenery:    break
         }
+        if let pc = entity.component(ofType: PathComponent.self) {
+            path = pc
+        }
         for system in systems {
             system.add(entity)
         }
@@ -40,6 +44,9 @@ final class EntityRegistry {
         towers.remove(entity)
         traps.remove(entity)
         projectiles.remove(entity)
+        if let pc = entity.component(ofType: PathComponent.self), pc === path {
+            path = nil
+        }
         for system in systems {
             system.remove(entity)
         }

@@ -12,12 +12,12 @@ final class GameScene: SKScene {
 
     private let tileSize: CGFloat = 36
     private let minPlacementSpacing: CGFloat = GhostMetrics.diameter
-    private var pathManager: PathManager!
 
     private(set) var registry: EntityRegistry!
     private var lastUpdateTime: TimeInterval = 0
     private var pendingRemovals: [GameEntity] = []
 
+    let mapLayer = SKNode()
     let humansLayer = SKNode()
     let towersLayer = SKNode()
     let trapsLayer = SKNode()
@@ -40,11 +40,13 @@ final class GameScene: SKScene {
         scaleMode = .resizeFill
         anchorPoint = CGPoint(x: 0, y: 0)
 
+        mapLayer.zPosition = 0
         humansLayer.zPosition = 2
         towersLayer.zPosition = 1
         trapsLayer.zPosition = 1
         projectilesLayer.zPosition = 5
         fxLayer.zPosition = 4
+        addChild(mapLayer)
         addChild(humansLayer)
         addChild(towersLayer)
         addChild(trapsLayer)
@@ -63,8 +65,7 @@ final class GameScene: SKScene {
             StateMachineSystem(),
         ])
 
-        pathManager = PathManager(scene: self, tileSize: tileSize)
-        pathManager.setup()
+        loadMap()
 
         let spawner = SpawnerEntity(interval: 3) { [weak self] in
             self?.spawnHuman()
@@ -99,8 +100,8 @@ final class GameScene: SKScene {
     // MARK: - Spawn / install
 
     func spawnHuman() {
-        guard let pathManager else { return }
-        let entity = HumanEntity(waypoints: pathManager.waypoints)
+        guard let path = registry.path else { return }
+        let entity = HumanEntity(waypoints: path.waypoints)
         if let pf = entity.component(ofType: PathFollowComponent.self) {
             pf.onArrive = { [weak self, weak entity] in
                 guard let self, let entity else { return }
@@ -194,15 +195,15 @@ final class GameScene: SKScene {
     // MARK: - Placement
 
     func pathBackward(from point: CGPoint) -> [CGPoint] {
-        pathManager.backwardPath(from: point)
+        registry.path?.backward(from: point) ?? [point]
     }
 
     func canPlace(_ character: CharacterData, at scenePoint: CGPoint) -> Bool {
         if tooCloseToExisting(scenePoint) { return false }
-        guard let pathManager else { return false }
-        let dist = pathManager.distanceToPath(scenePoint)
+        guard let path = registry.path else { return false }
+        let dist = path.distance(to: scenePoint)
         let ghostRadius = GhostMetrics.diameter / 2
-        let pathHalf = pathManager.pathHalfWidth
+        let pathHalf = path.halfWidth
         switch character.kind {
         case .tower: return dist > ghostRadius + pathHalf
         case .trap:  return dist + ghostRadius <= pathHalf
@@ -217,8 +218,61 @@ final class GameScene: SKScene {
         }
     }
 
+    // MARK: - Map loading
+
+    private func loadMap() {
+        var wpNodes: [SKNode] = []
+        if let ref = SKReferenceNode(fileNamed: "Map") {
+            mapLayer.addChild(ref)
+            collectWaypointNodes(in: ref, into: &wpNodes)
+        }
+        wpNodes.sort { ($0.name ?? "") < ($1.name ?? "") }
+        let points: [CGPoint]
+        if wpNodes.count >= 2 {
+            points = wpNodes.map { node in
+                guard let parent = node.parent else { return node.position }
+                return convert(node.position, from: parent)
+            }
+            wpNodes.forEach { $0.isHidden = true }
+        } else {
+            points = fallbackWaypoints()
+        }
+        registry.add(PathEntity(waypoints: points, halfWidth: tileSize / 2))
+    }
+
+    private func collectWaypointNodes(in root: SKNode, into out: inout [SKNode]) {
+        for child in root.children {
+            if let name = child.name, name.hasPrefix("wp_") {
+                out.append(child)
+            }
+            if !child.children.isEmpty {
+                collectWaypointNodes(in: child, into: &out)
+            }
+        }
+    }
+
+    private func fallbackWaypoints() -> [CGPoint] {
+        let w = size.width, h = size.height
+        func snap(_ x: CGFloat, _ y: CGFloat) -> CGPoint {
+            CGPoint(x: round(x / tileSize) * tileSize, y: round(y / tileSize) * tileSize)
+        }
+        return [
+            snap(w * 0.08, h * 0.92), snap(w * 0.08, h * 0.82),
+            snap(w * 0.55, h * 0.82), snap(w * 0.55, h * 0.73),
+            snap(w * 0.72, h * 0.73), snap(w * 0.72, h * 0.88),
+            snap(w * 0.93, h * 0.88), snap(w * 0.93, h * 0.62),
+            snap(w * 0.28, h * 0.62), snap(w * 0.28, h * 0.73),
+            snap(w * 0.08, h * 0.73), snap(w * 0.08, h * 0.42),
+            snap(w * 0.28, h * 0.42), snap(w * 0.28, h * 0.54),
+            snap(w * 0.72, h * 0.54), snap(w * 0.72, h * 0.24),
+            snap(w * 0.93, h * 0.24), snap(w * 0.93, h * 0.42),
+            snap(w * 0.50, h * 0.42), snap(w * 0.50, h * 0.08)
+        ]
+    }
+
     func spawnTrap(_ character: CharacterData, at point: CGPoint) {
-        let entity = TrapEntity(character: character, pathWaypoints: pathManager.waypoints)
+        guard let path = registry.path else { return }
+        let entity = TrapEntity(character: character, pathWaypoints: path.waypoints)
         entity.component(ofType: SpriteComponent.self)?.position = point
 
         if let trigger = entity.component(ofType: ProximityTriggerComponent.self) {
