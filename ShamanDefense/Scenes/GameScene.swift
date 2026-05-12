@@ -13,7 +13,6 @@ final class GameScene: SKScene {
     private let tileSize: CGFloat = 36
     private let minPlacementSpacing: CGFloat = GhostMetrics.diameter
     private var pathManager: PathManager!
-    private(set) var waveManager: WaveManager!
 
     private(set) var registry: EntityRegistry!
     private var lastUpdateTime: TimeInterval = 0
@@ -55,6 +54,7 @@ final class GameScene: SKScene {
         registry = EntityRegistry(systems: [
             EffectsSystem(),
             PathFollowSystem(),
+            SpawnerSystem(),
             HomingSystem(),
             LifetimeSystem(),
             ProximityTriggerSystem(),
@@ -66,8 +66,10 @@ final class GameScene: SKScene {
         pathManager = PathManager(scene: self, tileSize: tileSize)
         pathManager.setup()
 
-        waveManager = WaveManager(scene: self, waypoints: pathManager.waypoints, tileSize: tileSize)
-        waveManager.start()
+        let spawner = SpawnerEntity(interval: 3) { [weak self] in
+            self?.spawnHuman()
+        }
+        registry.add(spawner)
     }
 
     override func update(_ currentTime: TimeInterval) {
