@@ -7,6 +7,7 @@
 
 import SpriteKit
 import GameplayKit
+import UIKit
 
 final class GameScene: SKScene {
     
@@ -26,8 +27,8 @@ final class GameScene: SKScene {
     let fxLayer = SKNode()
     let hudLayer = SKNode()
     
-    private var scoreLabel: SKLabelNode!
-    private var spiritLabel: SKLabelNode?
+    private var scoreLabel: GameLabelNode!
+    private var spiritLabel: GameLabelNode?
     private var spiritCounterNode: SKSpriteNode?
     private var gameOverNode: GameOverNode?
     private var spawnerEntity: SpawnerEntity?
@@ -151,14 +152,39 @@ final class GameScene: SKScene {
     // MARK: - Score / game over
     
     private func buildScoreLabel() {
-        scoreLabel = SKLabelNode(fontNamed: "Helvetica-Bold")
-        scoreLabel.text = "0"
-        scoreLabel.fontSize = 28
-        scoreLabel.fontColor = .white
-        scoreLabel.horizontalAlignmentMode = .center
-        scoreLabel.verticalAlignmentMode = .top
-        scoreLabel.position = CGPoint(x: size.width / 2, y: size.height - 52)
-        hudLayer.addChild(scoreLabel)
+        
+        let hangingBoard = SKSpriteNode(imageNamed: "hanging_score")
+        hangingBoard.zPosition = 100
+        hangingBoard.size = CGSize(width: 160, height: 100)
+        
+        hangingBoard.position = CGPoint(
+            x: size.width / 2,
+            y: size.height - 40
+        )
+        hudLayer.addChild(hangingBoard)
+        
+        let titleLabel = GameLabelNode(
+            text: "Score:",
+            fontSize: 10
+        )
+        titleLabel.position = CGPoint(
+            x: 0,
+            y: -2
+        )
+        titleLabel.zPosition = 101
+        hangingBoard.addChild(titleLabel)
+        
+        scoreLabel = GameLabelNode(
+            text: "0",
+            fontSize: 40
+        )
+        
+        scoreLabel.position = CGPoint(
+            x: 0,
+            y: -25
+        )
+        scoreLabel.zPosition = 101
+        hangingBoard.addChild(scoreLabel)
     }
     
     func humanDefeated() {
@@ -176,6 +202,11 @@ final class GameScene: SKScene {
     func humanReachedFinish() {
         guard !isGameOver, let score = registry.score else { return }
         isGameOver = true
+        
+        let generator = UINotificationFeedbackGenerator()
+        generator.prepare()
+        generator.notificationOccurred(.error)
+        
         if let spawner = spawnerEntity {
             removeEntity(spawner)
             spawnerEntity = nil
@@ -292,14 +323,20 @@ final class GameScene: SKScene {
     }
     
     func canPlace(_ character: CharacterData, at scenePoint: CGPoint) -> Bool {
+        
         if tooCloseToExisting(scenePoint) { return false }
         guard let path = registry.path else { return false }
+        
         let dist = path.distance(to: scenePoint)
-        let ghostRadius = GhostMetrics.diameter / 2
-        let pathHalf = path.halfWidth
+        let towerPlacementDistance: CGFloat = 26
+        let trapPlacementDistance: CGFloat = 5
+        
         switch character.kind {
-        case .tower: return dist > ghostRadius + pathHalf
-        case .trap:  return dist + ghostRadius <= pathHalf
+        case .tower:
+            return dist > towerPlacementDistance
+            
+        case .trap:
+            return dist <= trapPlacementDistance
         }
     }
     
@@ -405,12 +442,11 @@ final class GameScene: SKScene {
         
         spiritCounterNode = counter
         
-        let label = SKLabelNode(fontNamed: "Newyear Coffee")
-        label.text = "0"
-        label.fontSize = 20
-        label.fontColor = .black
-        label.verticalAlignmentMode = .center
-        label.horizontalAlignmentMode = .center
+        let label = GameLabelNode(
+            text: "0",
+            fontSize: 20,
+            color: .black
+        )
         label.zPosition = 12
         label.position = CGPoint(x: 5, y: 3)
         
