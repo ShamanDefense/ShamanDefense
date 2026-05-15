@@ -14,31 +14,25 @@ struct DeploymentTrayHUD: View {
     var onDragEnded: (CharacterData, CGPoint) -> Void = { _, _ in }
 
     var body: some View {
-        ZStack {
-            Rectangle()
-                .fill(Color.black.opacity(0.4))
-
-            HStack(spacing: 10) {
-                ForEach(GameCollection.allCharacters) { character in
-                    CharacterCardUI(
-                        character: character,
-                        onTap: { selected = character }
-                    )
-                    .frame(height: 110)
-                    .gesture(
-                        DragGesture(minimumDistance: 4, coordinateSpace: .named(coordSpace))
-                            .onChanged { value in
-                                selected = character
-                                onDragChanged(character, value.location)
-                            }
-                            .onEnded { value in
-                                onDragEnded(character, value.location)
-                            }
-                    )
-                }
+        HStack(alignment: .bottom, spacing: 0) {
+            ForEach(GameCollection.allCharacters) { character in
+                CharacterCardUI(
+                    character: character,
+                    onTap: { selected = character }
+                )
+                .frame(maxWidth: .infinity)
+                .gesture(
+                    DragGesture(minimumDistance: 4, coordinateSpace: .named(coordSpace))
+                        .onChanged { value in
+                            selected = character
+                            onDragChanged(character, value.location)
+                        }
+                        .onEnded { value in
+                            onDragEnded(character, value.location)
+                        }
+                )
             }
         }
-        .frame(height: 120)
     }
 }
 
