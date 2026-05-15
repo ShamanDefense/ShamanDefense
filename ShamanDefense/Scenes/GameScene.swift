@@ -322,7 +322,7 @@ final class GameScene: SKScene {
         var wpNodes: [SKNode] = []
         if let ref = SKReferenceNode(fileNamed: "Map") {
             let authored = SKScene(fileNamed: "Map")?.size ?? size
-            let scale = min(size.width / authored.width, size.height / authored.height)
+            let scale = max(size.width / authored.width, size.height / authored.height)
             ref.setScale(scale)
             ref.position = CGPoint(x: size.width / 2, y: size.height / 2)
             mapLayer.addChild(ref)

@@ -16,7 +16,7 @@ struct PauseButton: View {
             Image(isPaused ? "continue" : "pause")
                 .resizable()
                 .scaledToFit()
-                .frame(width: 50, height: 50)
+                .frame(width: 50, height: 50).padding()
         }
     }
 }

@@ -25,14 +25,16 @@ struct GameScreen: View {
 
     var body: some View {
         GeometryReader { geo in
-            let sceneHeight = geo.size.height - trayHeight
+            let dropZoneHeight = geo.size.height - trayHeight
 
             ZStack(alignment: .top) {
-                VStack(spacing: 0) {
-                    SpriteView(scene: scene, debugOptions: [.showsFPS, .showsPhysics, .showsNodeCount])
-                        .frame(height: sceneHeight)
+                SpriteView(scene: scene, debugOptions: [.showsFPS, .showsPhysics, .showsNodeCount])
+                    .frame(width: geo.size.width, height: geo.size.height)
+                    .ignoresSafeArea()
 
-                    DeploymentTrayHUD(
+                VStack {
+                    Spacer()
+                    CharacterTray(
                         selected: $selected,
                         coordSpace: gameCoordSpace,
                         onDragChanged: { character, location in
@@ -40,18 +42,17 @@ struct GameScreen: View {
                         },
                         onDragEnded: { character, location in
                             dragging = nil
-                            guard location.y < sceneHeight else { return }
+                            guard location.y < dropZoneHeight else { return }
                             let liftedY = location.y - dragLift
                             let scenePoint = CGPoint(
                                 x: location.x,
-                                y: sceneHeight - liftedY
+                                y: geo.size.height - liftedY
                             )
                             scene.place(character, at: scenePoint)
                         }
-                    )
-                    .frame(height: trayHeight)
+                    ).padding(.bottom, 30).padding(.horizontal, 10)
                 }
-                
+
                 if isPaused {
                     PauseOverlayView()
                 }
@@ -65,9 +66,9 @@ struct GameScreen: View {
                     .padding()
                 }
 
-                if let drag = dragging, drag.location.y < sceneHeight {
+                if let drag = dragging, drag.location.y < dropZoneHeight {
                     let liftedY = drag.location.y - dragLift
-                    let scenePoint = CGPoint(x: drag.location.x, y: sceneHeight - liftedY)
+                    let scenePoint = CGPoint(x: drag.location.x, y: geo.size.height - liftedY)
                     let placeable = scene.canPlace(drag.character, at: scenePoint)
                     DragPreview(character: drag.character, isPlaceable: placeable)
                         .position(x: drag.location.x, y: liftedY)
@@ -87,6 +88,7 @@ struct GameScreen: View {
             .animation(.easeInOut(duration: 0.22), value: waveWarning)
             .coordinateSpace(name: gameCoordSpace)
         }
+        .ignoresSafeArea()
     }
 
     // Hook this to WaveManager / system callback later.
