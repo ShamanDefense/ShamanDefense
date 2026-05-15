@@ -25,11 +25,12 @@ final class GameOverNode: SKNode {
         dim.zPosition = 0
         addChild(dim)
         
-        let panel = SKSpriteNode(imageNamed: "gameover_panel")
-        
+        let panel = SKSpriteNode(imageNamed: "content_background")
+
+        let panelWidth = sceneSize.width * 0.68
         panel.size = CGSize(
-            width: sceneSize.width * 0.68,
-            height: sceneSize.height * 0.55
+            width: panelWidth,
+            height: panelWidth * 1.42
         )
         
         panel.position = CGPoint(x: 0, y: -50)
@@ -39,9 +40,10 @@ final class GameOverNode: SKNode {
         
         let title = SKSpriteNode(imageNamed: "gameover_text")
         
+        let titleWidth = sceneSize.width * 0.72
         title.size = CGSize(
-            width: sceneSize.width * 0.72,
-            height: sceneSize.height * 0.26
+            width: titleWidth,
+            height: titleWidth * 0.67
         )
         
         title.position = CGPoint(
