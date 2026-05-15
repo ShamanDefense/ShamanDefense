@@ -54,7 +54,15 @@ struct GameScreen: View {
                 }
 
                 if isPaused {
-                    PauseOverlayView()
+                    PauseOverlayView(
+                        onContinue: {
+                            isPaused = false
+                            scene.pauseComponent?.isPaused = false
+                        },
+                        onMainMenu: {
+                            // TODO: navigate to main menu
+                        }
+                    )
                 }
 
                 HStack {

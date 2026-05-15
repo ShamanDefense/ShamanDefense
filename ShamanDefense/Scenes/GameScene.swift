@@ -155,7 +155,7 @@ final class GameScene: SKScene {
         
         let hangingBoard = SKSpriteNode(imageNamed: "hanging_score")
         hangingBoard.zPosition = 100
-        hangingBoard.size = CGSize(width: 160, height: 100)
+        hangingBoard.size = CGSize(width: 200, height: 100)
         
         hangingBoard.position = CGPoint(
             x: size.width / 2,
