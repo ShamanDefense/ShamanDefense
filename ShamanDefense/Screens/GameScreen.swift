@@ -58,7 +58,7 @@ struct GameScreen: View {
 
                 HStack {
                     Spacer()
-                    SettingButton(isPaused: isPaused) {
+                    PauseButton(isPaused: isPaused) {
                         isPaused.toggle()
                         scene.pauseComponent?.isPaused = isPaused
                     }

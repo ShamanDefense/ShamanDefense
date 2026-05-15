@@ -1,5 +1,5 @@
 //
-//  SettingButton.swift
+//  PauseButton.swift
 //  ShamanDefense
 //
 //  Created by Mohammad Rizaldy Ramadhan on 13/05/26.
@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct SettingButton: View {
+struct PauseButton: View {
     let isPaused: Bool
     let onTap: () -> Void
 
@@ -22,5 +22,5 @@ struct SettingButton: View {
 }
 
 #Preview {
-    SettingButton(isPaused: false, onTap: {})
+    PauseButton(isPaused: false, onTap: {})
 }
